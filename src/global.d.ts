@@ -17,4 +17,5 @@ export interface ClassDoc {
   className: string;
   methods: MethodDoc[];
   constructors: ConstructorDoc[];
+  location: string;
 }

@@ -7,8 +7,9 @@
     "start": "npm run build:live",
     "build": "tsc -p .",
     "test": "ts-jest test",
-    "build:live": "nodemon --watch 'src/**/*.ts' --exec \"ts-node\" src/index.ts",
-    "morphic:live": "nodemon --watch 'src/**/*.ts' --exec \"ts-node\" src/morphic.ts"
+    "build:watch": "nodemon --watch 'src/**/*.ts' --ext js,ts --exec  \"tsc -p .\"",
+    "build:live": "nodemon --watch 'src/**/*.ts' --ext js,ts --exec \"ts-node\" src/index.ts",
+    "morphic:live": "nodemon --watch 'src/**/*.ts' --ext js,ts --exec \"ts-node\" src/morphic.ts"
   },
   "keywords": [],
   "author": "Mike Alche",

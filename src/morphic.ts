@@ -11,16 +11,7 @@ import {
 } from "ts-morph";
 import { ClassDoc, ConstructorDoc, MethodDoc } from "./global";
 import { inspect } from "util";
-import { resolve } from "path";
-
-// const project = new Project({
-//   tsConfigFilePath: "./tsconfig.json",
-// });
-
-// const sourceFile = project.getSourceFile("index.ts");
-// const animalClass = sourceFile!.getClassOrThrow("Animal");
-// const barkMethod = animalClass.getMethodOrThrow("bark");
-// const toWhomParam = barkMethod.getParameterOrThrow("toWhom");
+import { basename, resolve } from "path";
 
 interface DocGeneratorConstrutor {
   tsConfigFilePath: string;
@@ -36,26 +27,34 @@ export interface IDocGenerator {
 
 export class DocGenerator {
   public classDocs: ClassDoc[] = [];
-  private project: Project;
+  public project: Project;
   private sourceFile?: SourceFile;
 
   constructor(private options: DocGeneratorConstrutor) {
     const { tsConfigFilePath, sourceFileName } = options;
     this.project = new Project({
-      tsConfigFilePath: tsConfigFilePath,
+      tsConfigFilePath,
     });
-    this.sourceFile = this.project.getSourceFile(sourceFileName);
   }
 
-  addClassByName(className: string) {
-    const aClass = this.sourceFile!.getClassOrThrow(className);
+  addClassByNameAndSourceFile(sourceFile: SourceFile, className: string) {
+    const aClass = sourceFile!.getClassOrThrow(className);
     const methodsDocs = this.generateMethodsDocsForClass(aClass);
     const constructorsDocs = this.generateConstructorsDocsForClass(aClass);
     this.classDocs.push({
       className,
       methods: methodsDocs,
       constructors: constructorsDocs,
+      location: this.getFileNameFromSourceFile(sourceFile),
     });
+  }
+
+  addClassByName(sourceFileName: string, className: string) {
+    const sourceFile = this.project.getSourceFile(sourceFileName);
+    if (!sourceFile) {
+      throw new Error(`Couldn't find source file for name ${sourceFileName}`);
+    }
+    return this.addClassByNameAndSourceFile(sourceFile, className);
   }
 
   generateMethodsDocsForClass(aClass: ClassDeclaration): MethodDoc[] {
@@ -114,7 +113,6 @@ export class DocGenerator {
       return;
 
     const parameterTypeName = this.getNameFromParameterType(parameterType);
-
     if (
       this.classDocs.some(
         (classDoc) => classDoc.className === parameterTypeName
@@ -122,7 +120,22 @@ export class DocGenerator {
     )
       return;
 
-    this.addClassByName(parameterTypeName);
+    const sourceFile = this.getSourceFileForParameterType(parameterType);
+    if (!sourceFile) {
+      throw new Error(
+        `Couldn't find source file for parameter type ${parameterType}`
+      );
+    }
+
+    this.addClassByNameAndSourceFile(sourceFile, parameterTypeName);
+  }
+
+  getFileNameFromSourceFile(sourceFile: SourceFile) {
+    return sourceFile.compilerNode.fileName;
+  }
+
+  getSourceFileForParameterType(parameterType: Type<ts.Type>) {
+    return parameterType.getSymbol()?.getDeclarations()[0].getSourceFile();
   }
 }
 
