@@ -1,14 +1,15 @@
 import { join } from "path";
-import { DocGenerator } from "../../morphic";
+// @ts-ignore
+import { DocGenerator } from "../../../lib/morphic";
 
 describe("it should work", () => {
   let docGenerator: DocGenerator;
   beforeEach(() => {
     docGenerator = new DocGenerator({
-      sourceFileName: join(__dirname, "classContainer.ts"),
-      tsConfigFilePath: "./tsconfig.json",
+      sourceFileName: "classContainer.ts",
+      tsConfigFilePath: join(__dirname, "tsconfig.json"),
     });
-    docGenerator.addClassByName("Animal");
+    docGenerator.addClassByName("classContainer.ts", "Animal");
   });
   test("it works", () => {
     expect(docGenerator.classDocs).toEqual([
@@ -22,6 +23,7 @@ describe("it should work", () => {
             ],
           },
         ],
+        location: "/Users/mike/os/testmorph/src/tests/simple/classContainer.ts",
         methods: [],
       },
       {
@@ -34,6 +36,7 @@ describe("it should work", () => {
             ],
           },
         ],
+        location: "/Users/mike/os/testmorph/src/tests/simple/classContainer.ts",
         methods: [],
       },
       {
@@ -46,6 +49,7 @@ describe("it should work", () => {
             ],
           },
         ],
+        location: "/Users/mike/os/testmorph/src/tests/simple/classContainer.ts",
         methods: [
           {
             name: "bark",
