@@ -19,3 +19,13 @@ export interface ClassDoc {
   constructors: ConstructorDoc[];
   location: string;
 }
+
+export interface InterfaceDoc {
+  interfaceName: string;
+  properties: PropertyDoc[];
+}
+
+export interface PropertyDoc {
+  name: string;
+  type: string;
+}

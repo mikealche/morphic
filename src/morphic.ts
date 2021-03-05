@@ -8,8 +8,9 @@ import {
   MethodDeclaration,
   ConstructorDeclaration,
   SourceFile,
+  InterfaceDeclaration,
 } from "ts-morph";
-import { ClassDoc, ConstructorDoc, MethodDoc } from "./global";
+import { ClassDoc, ConstructorDoc, InterfaceDoc, MethodDoc } from "./global";
 import { inspect } from "util";
 import { basename, resolve } from "path";
 
@@ -26,9 +27,8 @@ export interface IDocGenerator {
 }
 
 export class DocGenerator {
-  public classDocs: ClassDoc[] = [];
+  public classDocs: Array<ClassDoc | InterfaceDoc> = [];
   public project: Project;
-  private sourceFile?: SourceFile;
 
   constructor(private options: DocGeneratorConstrutor) {
     const { tsConfigFilePath, sourceFileName } = options;
@@ -103,6 +103,36 @@ export class DocGenerator {
     return parameterType.getSymbol()?.getName()! || parameterType.getText();
   }
 
+  getFirstDeclarationForParameterType(parameterType: Type<ts.Type>) {
+    return parameterType.getSymbol()?.getDeclarations()[0];
+  }
+
+  hasClassAlreadyBeenAdded(parameterTypeName: string) {
+    return this.classDocs.some(
+      (classDoc) => (classDoc as ClassDoc).className === parameterTypeName
+    );
+  }
+
+  hasInterfaceAlreadyBeenAdded(parameterTypeName: string) {
+    return this.classDocs.some(
+      (classDoc) =>
+        (classDoc as InterfaceDoc).interfaceName === parameterTypeName
+    );
+  }
+
+  typeWasAlreadyAdded(parameterType: Type<ts.Type>) {
+    const parameterTypeName = this.getNameFromParameterType(parameterType);
+
+    if (parameterType.isClass()) {
+      if (this.hasClassAlreadyBeenAdded(parameterTypeName)) return true;
+    }
+
+    if (parameterType.isInterface()) {
+      if (this.hasInterfaceAlreadyBeenAdded(parameterTypeName)) return true;
+    }
+    return false;
+  }
+
   addParameterTypeDocs(parameterType: Type<ts.Type>): void {
     if (
       parameterType.isString() ||
@@ -112,13 +142,14 @@ export class DocGenerator {
     )
       return;
 
+    if (parameterType.isInterface()) {
+      return this.addInterfaceDocs(parameterType);
+    }
+
+    // Class was already added
     const parameterTypeName = this.getNameFromParameterType(parameterType);
-    if (
-      this.classDocs.some(
-        (classDoc) => classDoc.className === parameterTypeName
-      )
-    )
-      return;
+
+    if (this.typeWasAlreadyAdded(parameterType)) return;
 
     const sourceFile = this.getSourceFileForParameterType(parameterType);
     if (!sourceFile) {
@@ -136,6 +167,31 @@ export class DocGenerator {
 
   getSourceFileForParameterType(parameterType: Type<ts.Type>) {
     return parameterType.getSymbol()?.getDeclarations()[0].getSourceFile();
+  }
+
+  addInterfaceDocs(interfaceType: Type<ts.Type>) {
+    const interfaceDeclaration = this.getFirstDeclarationForParameterType(
+      interfaceType
+    ) as InterfaceDeclaration;
+    const sourceFile = this.getSourceFileForParameterType(interfaceType);
+    if (!sourceFile) {
+      throw new Error(
+        `Couldn't find source file for interface type ${interfaceType}`
+      );
+    }
+
+    this.classDocs.push({
+      interfaceName: interfaceDeclaration.getName(),
+      properties: interfaceDeclaration.getProperties().map((prop) => ({
+        name: prop.getName(),
+        type: prop.getType().getText(),
+      })),
+      location: this.getFileNameFromSourceFile(sourceFile),
+    });
+
+    for (const property of interfaceDeclaration.getProperties()) {
+      this.addParameterTypeDocs(property.getType());
+    }
   }
 }
 
