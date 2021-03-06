@@ -184,7 +184,8 @@ export class DocGenerator {
       interfaceName: interfaceDeclaration.getName(),
       properties: interfaceDeclaration.getProperties().map((prop) => ({
         name: prop.getName(),
-        type: prop.getType().getText(),
+        type:
+          prop.getType().getText().split(".")[1] || prop.getType().getText(),
       })),
       location: this.getFileNameFromSourceFile(sourceFile),
     });

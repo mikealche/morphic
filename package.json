@@ -7,6 +7,7 @@
     "start": "npm run build:live",
     "build": "tsc -p .",
     "test": "ts-jest test",
+    "build:test": "nodemon --watch 'src/**/*.ts' --ext js,ts --exec \"tsc -p . && npx jest\"",
     "build:watch": "nodemon --watch 'src/**/*.ts' --ext js,ts --exec  \"tsc -p .\"",
     "build:live": "nodemon --watch 'src/**/*.ts' --ext js,ts --exec \"ts-node\" src/index.ts",
     "morphic:live": "nodemon --watch 'src/**/*.ts' --ext js,ts --exec \"ts-node\" src/morphic.ts"
