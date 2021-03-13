@@ -1,4 +1,4 @@
-# Morphic, a WIP to automatically generating test suites for typescript
+# Morphic, a WIP to automatically generate test suites for typescript
 
 run tests with 
 
