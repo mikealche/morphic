@@ -9,6 +9,11 @@ import {
   ConstructorDeclaration,
   SourceFile,
   InterfaceDeclaration,
+  TypeParameterDeclaration,
+  TypeLiteralNode,
+  TypeAliasDeclaration,
+  PropertyDeclaration,
+  ObjectLiteralElement,
 } from "ts-morph";
 import { ClassDoc, ConstructorDoc, InterfaceDoc, MethodDoc } from "./global";
 import { inspect } from "util";
@@ -146,19 +151,36 @@ export class DocGenerator {
       return this.addInterfaceDocs(parameterType);
     }
 
-    // Class was already added
+    // Type was already added
     const parameterTypeName = this.getNameFromParameterType(parameterType);
-
     if (this.typeWasAlreadyAdded(parameterType)) return;
 
-    const sourceFile = this.getSourceFileForParameterType(parameterType);
-    if (!sourceFile) {
-      throw new Error(
-        `Couldn't find source file for parameter type ${parameterType}`
-      );
+    if (parameterType.isClass()) {
+      const sourceFile = this.getSourceFileForParameterType(parameterType);
+      if (!sourceFile) {
+        throw new Error(
+          `Couldn't find source file for parameter type ${parameterType}`
+        );
+      }
+
+      this.addClassByNameAndSourceFile(sourceFile, parameterTypeName);
+      return;
     }
 
-    this.addClassByNameAndSourceFile(sourceFile, parameterTypeName);
+    // Solution until we find how to check that a type is something like
+    // type ASD = {a: b, c: d}
+    if (parameterType.isObject()) {
+      this.addObjectDocs(parameterType as Type<ts.ObjectType>);
+    }
+  }
+
+  addObjectDocs(objectParam: Type<ts.ObjectType>) {
+    // Complete me
+    const name = objectParam.getText();
+    objectParam.getProperties().forEach((prop) => {
+      console.log(prop.getName());
+      // TODO get the type
+    });
   }
 
   getFileNameFromSourceFile(sourceFile: SourceFile) {
