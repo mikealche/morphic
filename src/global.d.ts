@@ -24,6 +24,10 @@ export interface InterfaceDoc {
   interfaceName: string;
   properties: PropertyDoc[];
 }
+export interface TypeDoc {
+  typeName: string;
+  properties: PropertyDoc[];
+}
 
 export interface PropertyDoc {
   name: string;

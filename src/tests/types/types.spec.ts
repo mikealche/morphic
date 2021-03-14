@@ -14,44 +14,45 @@ describe("it should work", () => {
   test("it works", () => {
     expect(docGenerator.classDocs).toEqual([
       {
-        typeName: "BarkType",
-        location:
-          "/Users/mike/os/testmorph/src/tests/interfaces/classContainer.ts",
+        location: "/Users/mike/os/testmorph/src/tests/types/classContainer.ts",
         properties: [
-          { name: "toWhom", type: "Person" },
-          { name: "age", type: "number" },
-        ],
-      },
-      {
-        className: "Person",
-        constructors: [
           {
-            parameters: [
-              { name: "firstname", type: "string" },
-              { name: "age", type: "number" },
-            ],
+            name: "toWhom",
+            type: "Person",
+          },
+          {
+            name: "age",
+            type: "number",
           },
         ],
-        location:
-          "/Users/mike/os/testmorph/src/tests/interfaces/classContainer.ts",
-        methods: [],
+        typeName: "BarkType",
       },
       {
         className: "Animal",
         constructors: [
           {
             parameters: [
-              { name: "name", type: "string" },
-              { name: "color", type: "string" },
+              {
+                name: "name",
+                type: "string",
+              },
+              {
+                name: "color",
+                type: "string",
+              },
             ],
           },
         ],
-        location:
-          "/Users/mike/os/testmorph/src/tests/interfaces/classContainer.ts",
+        location: "/Users/mike/os/testmorph/src/tests/types/classContainer.ts",
         methods: [
           {
             name: "bark",
-            parameters: [{ name: "options", type: "BarkType" }],
+            parameters: [
+              {
+                name: "options",
+                type: "BarkType",
+              },
+            ],
             returnType: undefined,
           },
         ],

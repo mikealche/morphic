@@ -14,8 +14,16 @@ import {
   TypeAliasDeclaration,
   PropertyDeclaration,
   ObjectLiteralElement,
+  TypeNode,
+  PropertySignature,
 } from "ts-morph";
-import { ClassDoc, ConstructorDoc, InterfaceDoc, MethodDoc } from "./global";
+import {
+  ClassDoc,
+  ConstructorDoc,
+  InterfaceDoc,
+  MethodDoc,
+  TypeDoc,
+} from "./global";
 import { inspect } from "util";
 import { basename, resolve } from "path";
 
@@ -32,7 +40,7 @@ export interface IDocGenerator {
 }
 
 export class DocGenerator {
-  public classDocs: Array<ClassDoc | InterfaceDoc> = [];
+  public classDocs: Array<ClassDoc | InterfaceDoc | TypeDoc> = [];
   public project: Project;
 
   constructor(private options: DocGeneratorConstrutor) {
@@ -80,13 +88,18 @@ export class DocGenerator {
     };
   }
 
-  generateDocsForParameter(parameter: ParameterDeclaration) {
-    const parameterType = parameter.getType();
-    this.addParameterTypeDocs(parameterType);
+  generateDocsForParameter(parameterDeclaration: ParameterDeclaration) {
+    const parameterType = parameterDeclaration.getType();
+
+    this.addParameterDocs(parameterDeclaration);
+
+    const typeName = parameterType.getText().includes("import")
+      ? this.getNameFromParameterType(parameterType)
+      : parameterType.getText();
 
     return {
-      name: parameter.getName(),
-      type: this.getNameFromParameterType(parameterType),
+      name: parameterDeclaration.getName(),
+      type: typeName,
     };
   }
 
@@ -138,7 +151,10 @@ export class DocGenerator {
     return false;
   }
 
-  addParameterTypeDocs(parameterType: Type<ts.Type>): void {
+  addParameterDocs(
+    parameterDeclaration: ParameterDeclaration | PropertySignature
+  ): void {
+    const parameterType = parameterDeclaration.getType();
     if (
       parameterType.isString() ||
       parameterType.isNumber() ||
@@ -167,19 +183,34 @@ export class DocGenerator {
       return;
     }
 
-    // Solution until we find how to check that a type is something like
-    // type ASD = {a: b, c: d}
-    if (parameterType.isObject()) {
-      this.addObjectDocs(parameterType as Type<ts.ObjectType>);
+    const parameterTypeNode = parameterDeclaration.getTypeNode();
+    if (Node.isTypeReferenceNode(parameterTypeNode)) {
+      this.addObjectDocs(
+        parameterType as Type<ts.ObjectType>,
+        parameterDeclaration
+      );
     }
   }
 
-  addObjectDocs(objectParam: Type<ts.ObjectType>) {
-    // Complete me
-    const name = objectParam.getText();
-    objectParam.getProperties().forEach((prop) => {
-      console.log(prop.getName());
-      // TODO get the type
+  addObjectDocs(
+    objectParam: Type<ts.ObjectType>,
+    parameterDeclaration: ParameterDeclaration | PropertySignature
+  ) {
+    const sourceFile = this.getSourceFileForParameterType(objectParam);
+    if (!sourceFile) {
+      throw new Error(
+        `Couldn't find source file for interface type ${objectParam}`
+      );
+    }
+    this.classDocs.push({
+      typeName: objectParam.getText(),
+      properties: objectParam.getProperties().map((prop) => {
+        return {
+          name: prop.getName(),
+          type: prop.getTypeAtLocation(parameterDeclaration).getText(),
+        };
+      }),
+      location: this.getFileNameFromSourceFile(sourceFile),
     });
   }
 
@@ -212,8 +243,8 @@ export class DocGenerator {
       location: this.getFileNameFromSourceFile(sourceFile),
     });
 
-    for (const property of interfaceDeclaration.getProperties()) {
-      this.addParameterTypeDocs(property.getType());
+    for (const propertySignature of interfaceDeclaration.getProperties()) {
+      this.addParameterDocs(propertySignature);
     }
   }
 }
