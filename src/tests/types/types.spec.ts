@@ -53,7 +53,7 @@ describe("it should work", () => {
                 type: "BarkType",
               },
             ],
-            returnType: undefined,
+            returnType: "string",
           },
         ],
       },

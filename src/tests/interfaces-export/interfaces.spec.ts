@@ -52,7 +52,7 @@ describe("it should work", () => {
           {
             name: "bark",
             parameters: [{ name: "options", type: "IBarkProps" }],
-            returnType: undefined,
+            returnType: "string",
           },
         ],
       },

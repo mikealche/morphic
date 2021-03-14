@@ -81,10 +81,12 @@ export class DocGenerator {
       .getParameters()
       .map((parameter) => this.generateDocsForParameter(parameter));
 
+    const returnType = method.getReturnType().getText();
+
     return {
       name: method.getName(),
       parameters,
-      returnType: method.getReturnType().getSymbol()?.getName()!,
+      returnType: returnType,
     };
   }
 

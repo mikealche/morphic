@@ -57,7 +57,7 @@ describe("it should work", () => {
               { name: "toWhom", type: "Person" },
               { name: "where", type: "Place" },
             ],
-            returnType: undefined,
+            returnType: "string",
           },
         ],
       },
