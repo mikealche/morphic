@@ -33,3 +33,5 @@ export interface PropertyDoc {
   name: string;
   type: string;
 }
+
+export type DocsType = Array<ClassDoc | InterfaceDoc | TypeDoc>;

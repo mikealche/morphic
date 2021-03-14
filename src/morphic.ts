@@ -39,8 +39,9 @@ export interface IDocGenerator {
   }: DocGeneratorConstrutor): DocGenerator;
 }
 
+type DocsType = Array<ClassDoc | InterfaceDoc | TypeDoc>;
 export class DocGenerator {
-  public classDocs: Array<ClassDoc | InterfaceDoc | TypeDoc> = [];
+  public classDocs: DocsType = [];
   public project: Project;
 
   constructor(private options: DocGeneratorConstrutor) {
